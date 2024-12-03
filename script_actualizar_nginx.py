@@ -1,6 +1,5 @@
 import os
 import requests
-from dotenv import load_dotenv
 
 # Función para obtener la IP pública
 def get_public_ip():
