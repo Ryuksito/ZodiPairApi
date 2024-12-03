@@ -34,8 +34,9 @@ async def get_random_user_images(count: int):
 
     # Construir la respuesta con las URLs y las imágenes seleccionadas
     return [
-        {"filename": img.name, 
-         "user_id": img.parent.name, 
-         "url": f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{img.parent.name}/{img.name}"
+        {
+         "user_name": img.parent.name, 
+         "filename": img.name, 
+         "url_image": f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{img.parent.name}/{img.name}"
         } for img in random_images
     ]
