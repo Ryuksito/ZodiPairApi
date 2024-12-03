@@ -7,4 +7,4 @@ process1: CompletedProcess = subprocess.run(["python", "app/update_ip.py"])
 
 # Arrancar el servidor uvicorn
 if process1.returncode == 0: 
-    subprocess.run(["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80", "--reload"])
+    subprocess.run(["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"])
