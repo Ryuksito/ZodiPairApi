@@ -2,9 +2,40 @@ import random
 from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pathlib import Path
+
 from app.config import BASE_USER_IMAGES_DIR, IP, MOUNT_USER_IMAGES_PATH
+from app.services import ZodiPairDB
+from app.models import GetRandomUsersModel, GetUserModel, GetProfileModel, UserListModel
 
 router = APIRouter(prefix="/users/images", tags=["Images"])
+
+db = ZodiPairDB()
+
+@router.post("/random")
+async def post_random_user_images(get_random_users: GetRandomUsersModel):
+    """
+    Devuelve una lista aleatoria de imágenes de perfil en formato .jpg de todos los usuarios.
+    """
+
+    users:UserListModel = db.get_random_users(get_random_users)
+    response = []
+    user: GetUserModel
+    for user in users.users: 
+        
+        profile:GetProfileModel  = db.get_profile(user.id)
+        response.append(
+            {
+                "user_name": user.user_name,
+                "profile_img": f"{IP}/{MOUNT_USER_IMAGES_PATH}/{profile.img}",
+                "age": profile.age,
+                "gender": profile.gender,
+                "target_gender": profile.target_gender,
+                "zodiac_symbol": profile.zodiac_symbol,
+                "description": profile.description,
+                "imgs": profile.imgs
+            }
+        )
+    return response
 
 @router.get("/random/{count}")
 async def get_random_user_images(count: int):
