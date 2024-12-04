@@ -26,7 +26,7 @@ async def post_random_user_images(get_random_users: GetRandomUsersModel):
         response.append(
             {
                 "user_name": user.user_name,
-                "profile_img": f"{IP}/{MOUNT_USER_IMAGES_PATH}/{profile.img}",
+                "profile_img": f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{profile.img}",
                 "age": profile.age,
                 "gender": profile.gender,
                 "target_gender": profile.target_gender,
