@@ -35,6 +35,7 @@ async def post_random_user_images(get_random_users: GetRandomUsersModel):
                 "imgs": profile.imgs
             }
         )
+    print('Response: ', response)
     return response
 
 @router.get("/random/{count}")
