@@ -87,6 +87,33 @@ class ZodiPairDB:
         self.connection.commit()
         result = self.cursor.fetchone()
         return GetUserModel(**result)
+    
+    def find_user(self, user_id: str) -> GetUserModel:
+        """
+        Busca un usuario en la base de datos por su user_id y devuelve un objeto GetUserModel,
+        excluyendo la contraseña.
+
+        :param user_id: El ID del usuario a buscar.
+        :return: Una instancia de GetUserModel si se encuentra el usuario, None si no se encuentra.
+        """
+        query = """
+        SELECT u.id, u.user_name, u.profile_id, u.requests_id
+        FROM users u
+        WHERE u.id = %s;
+        """
+        self.cursor.execute(query, (user_id,))
+        user_data = self.cursor.fetchone()
+
+        if user_data is None:
+            return None  # Usuario no encontrado
+
+        # Convertir los datos en un modelo GetUserModel
+        return GetUserModel(
+            id=user_data["id"],
+            user_name=user_data["user_name"],
+            profile_id=user_data["profile_id"],
+            requests_id=user_data["requests_id"],
+        )
 
     def get_users(self) -> UserListModel:
         """Obtiene todos los usuarios"""

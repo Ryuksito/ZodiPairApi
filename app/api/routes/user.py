@@ -27,3 +27,16 @@ async def post_user_validation(user_id: str):
     print(get_profile)
 
     return get_profile
+
+@router.get("/user", response_model=GetUserModel)
+async def get_user(user_id: str):
+    """
+    Endpoint para obtener un usuario por su ID.
+
+    :param user_id: El ID del usuario a buscar.
+    :return: Un modelo `GetUserModel` con los datos del usuario.
+    """
+    response = db.find_user(user_id)
+    if not response:
+        raise HTTPException(status_code=404, detail="User not found")
+    return response
