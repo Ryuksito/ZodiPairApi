@@ -106,17 +106,29 @@ class ZodiPairDB:
         return GetUserModel(**result)
 
     def get_random_users(self, get_random_users: GetRandomUsersModel) -> UserListModel:
-        """Obtiene n usuarios aleatorios excluyendo al usuario con el ID especificado"""
+        """Obtiene n usuarios aleatorios excluyendo al usuario con el ID especificado y asegurando coincidencia de géneros"""
         query = """
-        SELECT * FROM "users"
-        WHERE id != %s
+        SELECT u.*
+        FROM "users" u
+        JOIN "profile" p ON u.profile_id = p.id
+        WHERE u.id != %s
+        AND p.gender = (
+            SELECT target_gender
+            FROM "profile"
+            WHERE id = (
+                SELECT profile_id
+                FROM "users"
+                WHERE id = %s
+            )
+        )
         ORDER BY RANDOM()
         LIMIT %s;
         """
-        self.cursor.execute(query, (get_random_users.id, get_random_users.count))
+        self.cursor.execute(query, (get_random_users.id, get_random_users.id, get_random_users.count))
         results = self.cursor.fetchall()
         users = [GetUserModel(**user) for user in results]
         return UserListModel(users=users)
+
 
     def get_profile(self, user_id: str) -> GetProfileModel:
         """Obtiene el perfil de un usuario específico por UUID"""
