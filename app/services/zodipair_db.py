@@ -11,7 +11,9 @@ from app.models import (
     GetRandomUsersModel,
     CreateUserModel,
     GetProfileModel,
-    CreateProfileModel
+    CreateProfileModel,
+    UpdateRequestModel,
+    UpdateRequestResponseModel
 )
 
 # Configuración de conexión a la base de datos
@@ -143,6 +145,66 @@ class ZodiPairDB:
         if not result:
             raise ValueError(f"No profile found for user_id: {user_id}")
         return GetProfileModel(**result)
+    
+    def add_request(self, update_request: UpdateRequestModel) -> bool:
+        """
+        Agrega un 'love' o 'hot love' a la lista de requests de un usuario.
+        Si el usuario no tiene un request asociado, se crea uno nuevo.
+
+        :param update_request: Datos de la solicitud (user_id, sender_id, is_hot_love)
+        :return: True si se realiza la operación con éxito, False en caso de error
+        """
+        try:
+            # Verificar si el usuario tiene un requests_id asociado
+            self.cursor.execute("""
+                SELECT requests_id FROM users WHERE id = %s
+            """, (update_request.user_id,))
+            user_data = self.cursor.fetchone()
+
+            if not user_data:
+                print(f"User with ID {update_request.user_id} does not exist.")
+                return UpdateRequestResponseModel(status=False)
+
+            requests_id = user_data.get("requests_id")
+
+            if requests_id is None:
+                # Crear un nuevo registro en la tabla requests si no existe
+                self.cursor.execute("""
+                    INSERT INTO requests (hearts, hot_hearts)
+                    VALUES (%s, %s)
+                    RETURNING id
+                """, ([], []))
+                requests_id = self.cursor.fetchone()["id"]
+
+                # Asociar el nuevo requests_id al usuario
+                self.cursor.execute("""
+                    UPDATE users
+                    SET requests_id = %s
+                    WHERE id = %s
+                """, (requests_id, update_request.user_id))
+                self.connection.commit()
+
+            # Determinar si es un 'love' o 'hot love' y actualizar la lista correspondiente
+            if update_request.is_hot_love:
+                self.cursor.execute("""
+                    UPDATE requests
+                    SET hot_hearts = array_append(hot_hearts, %s)
+                    WHERE id = %s
+                """, (update_request.sender_id, requests_id))
+            else:
+                self.cursor.execute("""
+                    UPDATE requests
+                    SET hearts = array_append(hearts, %s)
+                    WHERE id = %s
+                """, (update_request.sender_id, requests_id))
+
+            self.connection.commit()
+            return UpdateRequestResponseModel(status=True)
+
+        except psycopg2.Error as e:
+            print(f"Database error while adding request: {e}")
+            self.connection.rollback()
+            return UpdateRequestResponseModel(status=True)
 
     def close_connection(self):
         """Cierra la conexión a la base de datos"""

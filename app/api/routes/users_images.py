@@ -25,6 +25,7 @@ async def post_random_user_images(get_random_users: GetRandomUsersModel):
         profile:GetProfileModel  = db.get_profile(user.id)
         response.append(
             {
+                "user_id": user.id,
                 "user_name": user.user_name,
                 "profile_img": f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{profile.img}",
                 "age": profile.age,
