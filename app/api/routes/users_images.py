@@ -32,10 +32,9 @@ async def post_random_user_images(get_random_users: GetRandomUsersModel):
                 "target_gender": profile.target_gender,
                 "zodiac_symbol": profile.zodiac_symbol,
                 "description": profile.description,
-                "imgs": profile.imgs
+                "imgs": [f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{img}" for img in profile.imgs]
             }
         )
-    print('Response: ', response)
     return response
 
 @router.get("/random/{count}")
