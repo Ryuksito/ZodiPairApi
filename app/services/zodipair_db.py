@@ -237,7 +237,6 @@ class ZodiPairDB:
             self.connection.rollback()
             return UpdateRequestResponseModel(status=True)
 
-    import ast
 
     def get_user_request(self, user_request: GetUserRequestModel) -> GetRequestModel:
         """
@@ -279,8 +278,8 @@ class ZodiPairDB:
 
             return GetRequestModel(
                 id=request_data["id"],
-                hearts=hearts,
-                hot_hearts=hot_hearts
+                hearts=hearts[::-1] ,
+                hot_hearts=hot_hearts[::-1] 
             )
 
         except psycopg2.Error as e:
