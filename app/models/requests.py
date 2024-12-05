@@ -10,6 +10,9 @@ class GetRequestModel(BaseModel):
     hearts: list[str]
     hot_hearts: list[str]
 
+class GetUserRequestModel(BaseModel):
+    user_id: str  
+
 class UpdateRequestModel(BaseModel):
     user_id: str  
     sender_id: str  

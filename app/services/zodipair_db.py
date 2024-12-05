@@ -1,7 +1,9 @@
+import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import uuid
 from typing import List
+import ast
 
 from app.config import HOST, PORT, DATABASE_NAME, DATABASE_USER, DATABASE_PASS
 from app.models import (
@@ -13,7 +15,9 @@ from app.models import (
     GetProfileModel,
     CreateProfileModel,
     UpdateRequestModel,
-    UpdateRequestResponseModel
+    UpdateRequestResponseModel,
+    GetRequestModel,
+    GetUserRequestModel,
 )
 
 # Configuración de conexión a la base de datos
@@ -205,6 +209,61 @@ class ZodiPairDB:
             print(f"Database error while adding request: {e}")
             self.connection.rollback()
             return UpdateRequestResponseModel(status=True)
+
+    import ast
+
+    def get_user_request(self, user_request: GetUserRequestModel) -> GetRequestModel:
+        """
+        Obtiene los datos de la request de un usuario (hearts y hot_hearts).
+        Si no existe una request asociada, devuelve un resultado vacío.
+
+        :param user_request: Modelo con el ID del usuario para buscar su request.
+        :return: Modelo GetRequestModel con los datos de la request.
+        """
+        try:
+            # Obtener el requests_id del usuario
+            self.cursor.execute("""
+                SELECT requests_id FROM users WHERE id = %s
+            """, (user_request.user_id,))
+            user_data = self.cursor.fetchone()
+
+            if not user_data or user_data["requests_id"] is None:
+                return GetRequestModel(id=-1, hearts=[], hot_hearts=[])
+
+            requests_id = user_data["requests_id"]
+
+            # Obtener los datos de la request con conversión de arrays a JSON
+            self.cursor.execute("""
+                SELECT 
+                    id, 
+                    array_to_json(hearts) AS hearts, 
+                    array_to_json(hot_hearts) AS hot_hearts
+                FROM requests
+                WHERE id = %s
+            """, (requests_id,))
+            request_data = self.cursor.fetchone()
+
+            if not request_data:
+                return GetRequestModel(id=requests_id, hearts=[], hot_hearts=[])
+
+            # Convertir los campos JSON a listas reales
+            hearts = request_data["hearts"] if request_data["hearts"] else []
+            hot_hearts = request_data["hot_hearts"] if request_data["hot_hearts"] else []
+
+            return GetRequestModel(
+                id=request_data["id"],
+                hearts=hearts,
+                hot_hearts=hot_hearts
+            )
+
+        except psycopg2.Error as e:
+            print(f"Database error while retrieving user request: {e}")
+            raise
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON from PostgreSQL array: {e}")
+            raise
+
+
 
     def close_connection(self):
         """Cierra la conexión a la base de datos"""
