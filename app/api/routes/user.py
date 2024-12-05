@@ -21,7 +21,7 @@ async def post_user_validation(user_validation: UserValidationModel):
 async def post_user_validation(user_id: str):
     get_profile: GetProfileModel = db.get_profile(user_id)
 
-    get_profile.img = f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{get_profile.img}",
+    get_profile.img = f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{get_profile.img}"
     get_profile.imgs = [f"http://{IP}{MOUNT_USER_IMAGES_PATH}/{img}" for img in get_profile.imgs]
 
     print(get_profile)
